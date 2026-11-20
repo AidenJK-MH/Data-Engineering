@@ -1,0 +1,95 @@
+Data Engineering Skills Baselining Task
+
+
+Prompts: 
+
+I have a data engineering task as part of a skills baselining session. Here's the info: Exercise scenario​
+
+A consultancy team needs repeatable public-data insight for their monthly meeting with the client. You are tasked with building a weekly UK fuel-price pipeline and analyse the petrol–diesel gap.​
+Task​
+
+Using Python and SQL, create an automated pipeline that pulls the data from the public data source of your choice. Then as part of that pipeline, process the data into a database ready for analysis.​
+​
+
+Stretch: Use a visualisation tool of your choice to show your findings e.g. PowerBI or Plotly etc.​
+Here's how I'd like to structure it: 1. Set up a script that scrapes data from the recommended website (https://www.gov.uk/government/statistics/weekly-road-fuel-prices). There's a button with a download link, the button’s properties are: <a class="govuk-link" target="_self" data-ga4-link="{&quot;event_name&quot;:&quot;file_download&quot;,&quot;type&quot;:&quot;attachment&quot;}" href="https://assets.publishing.service.gov.uk/media/6afb1216ccb3ea58ac8743ac/Weekly_Fuel_Prices_16-11-26.xlsx">Weekly road fuel prices (Excel)</a> so we can go straight to the file download link to initiate download. I’d then like to move that download to the project folder in this project directory in an input folder. This will be one function in the main script. We will then continue with data extraction from excel, processing, cleaning, etc as we go.
+
+
+Here's how I'd like to structure it: 1. Set up a script that scrapes data from the recommended website (https://www.gov.uk/government/statistics/weekly-road-fuel-prices). There's a button with a download link, the button’s properties are: <a class="govuk-link" target="_self" data-ga4-link="{&quot;event_name&quot;:&quot;file_download&quot;,&quot;type&quot;:&quot;attachment&quot;}" href="https://assets.publishing.service.gov.uk/media/6afb1216ccb3ea58ac8743ac/Weekly_Fuel_Prices_16-11-26.xlsx">Weekly road fuel prices (Excel)</a> so we can go straight to the file download link to initiate download. I’d then like to move that download to the project folder in this project directory in an input folder. This will be one function in the main script. We will then continue with data extraction from excel, processing, cleaning, etc as we go.
+
+
+Great. Now the data we want is in the sheet Data in th excel file, with the table starting in with header row in row 8. Look for cell ="Date" and we can be confident that this is the table
+
+GNow before the save as csv step I'd like some data cleaning. Change the headers to be clearer (use petrol and diesel rather than ULSP). I'd also like a new column calculated which calculates the pre-tax cost. Finally, unpivot the dataset into a "tall" table structure, for easier analysis in powerBI. I'd like a categorical column named "Fuel" which is Petrol or Diesel, and then for each date I'd like price at pump, duty tax, vat rate, and diff on perev week and diff on prev year.
+
+
+csv output looks good. Now let's replace the csv saving step with a sqlite implementation. Create the necessary db, table, etc. and ensure that the dataframe that's created gets ingested directly intot he sqlite db
+
+
+
+let's make sure the data from excel is ingested directly into a dataframe and that all subsequent data processing is done in dataframes before going to sqlite. Also - remove any steps or leftovers from the csv implementation
+
+Ok - let's discuss how we keep this data fresh and readable in PowerBI. Unfortunately I believe the SQLite implementation won't work as PowerBi doesn't have a native ingest for SQLite. Can we use a lightweight Postgres approach? Don't implement any changes for nowOk - let's discuss how we keep this data fresh and readable in PowerBI. Unfortunately I believe the SQLite implementation won't work as PowerBi doesn't have a native ingest for SQLite. Can we use a lightweight Postgres approach? Don't implement any changes for now
+
+
+Ok - let's discuss how we keep this data fresh and readable in PowerBI. Unfortunately I believe the SQLite implementation won't work as PowerBi doesn't have a native ingest for SQLite. Can we use a lightweight Postgres approach? Don't implement any changes for now
+
+
+For PostgreSQL, we don't have time to setup a cloud db. Are there any other local options, or are we going to have to include a csv output for powerbi to ingest?
+
+
+Ok - with the csv output, I'd like this to come from the SQLite db so SQLite db remains relevant as the single source of truth. At the end of the main py file, add a call to sqlite db to download all data from the table into a csv, which we cna point the PowerBi to
+
+
+
+Great - now let's replicate and include 2 other data sources. This is going to require some major changes to names of files, extra scripts etc. I'd like the structure to be one main file which calls on 3 scraper files. The main script calls the get_data function from the 3 scripts, and then the clean_data function, passing each dataset as a pandas data frame. When the data has been cleaned, the main file imports each into the sqlite db in a respective table, and then queries the sqlite db and saves each dataset as a csv from the sql table. We’ll do 1 data source at a time, the first one is: 1HM Land Registry · UK HPI — April 2026 edition (mainlink: https://www.gov.uk/government/statistical-data-sets/uk-house-price-index-data-downloads-april-2026
+Button object: <a rel="external" href="https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/UK-HPI-full-file-2026-04.csv?utm_medium=GOV.UK&amp;utm_source=datadownload&amp;utm_campaign=full_fil&amp;utm_term=9.30_17_06_26">UK HPI full file</a>. Note this is a csv download so no header rows to skip.)
+However: this may be a moving link, because the month is hardcoded in the URL. Therefore let’s back up a page, going to: https://www.gov.uk/government/collections/uk-house-price-index-reports-2026, which has links for each month’s data in the format: Contents
+1. September 2026
+2. August 2026
+3. July 2026
+4. June 2026
+5. May 2026
+6. April 2026
+7. March 2026
+8. February 2026
+9. January 2026
+Where each link takes you to the latest file. Therefore, we want to query it with the current year (use local year for this), and if that doesn’t work, default to previous year back down to 2026. Each month’s link is a button like: <a class="  govuk-link gem-print-force-link-styles " href="/government/statistical-data-sets/uk-house-price-index-data-downloads-september-2026">UK House Price Index: data downloads September 2026</a> So iterate backwards from today’s month using the format in the button layout, to find the most up to date link. That link takes you to a page with a button: <a rel="external" href="https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/UK-HPI-full-file-2026-09.csv?utm_medium=GOV.UK&amp;utm_source=datadownload&amp;utm_campaign=full_fil&amp;utm_term=9.30_18_11_26">UK HPI full file</a> which is always called UK HPI full file. If we need to boot up a beautiful soup or selenium way of navigating this let me know and we can implement. I’ll run through csv format and data cleaning steps once we’ve sorted this.
+
+
+Ok - can we test that this approach works for a given month e.g. June 2026? Just to ensure future reliability and make sure it's not only working for September 2026. Don't hard code these changes in the scripts themselves, but let's set up a test case that runs with a given today() date
+
+Great and lets add /tests folder to git ignore
+
+Ok - for data cleaning, let me know the current csv format and provide some recommendations on data cleaning steps, data transformation, etc
+
+1. Yes standardise names. 2 don't change date parsing dd/mm/yyy is fine. 3. Yes numeric, and nulls. 4. No 5. No. 6. Yes
+
+
+Great. Now there's a very weird csv output for the 3rd one so I've saved til last. Good news is it's a static link, bad news is the csv doesn’t make any sense.  ONS · Consumer price inflation time seriesONS · Consumer price inflation time series (main link: https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/consumerpriceindices, download button object: <a href="/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindices/current/mm23.csv" class="btn btn--primary btn--thick" data-gtm-download-file="mm23.csv" data-gtm-download-type="csv" aria-label="Download Consumer price inflation time series in csv format”>/a>. This is a csv download, so no header row skips. Let’s just add the csv download step for now, and I want you to take a look at the downloaded csv and tell me what you make of it.
+
+
+Yes - transform the data as described, save as csv and I'll review
+
+
+Ok - dataset is way too big. We don't need release date and next release columns added, and we don't need annual percentage change category (this can be calculated on the fly in PowrBi if needed). This should bring dataset down to 500k rows, much more manageable. Import this into Sqlite and ensure ingest, process, and save steps match other datasources. Also finally, ensure that this processing accounts for ingestion of wide datasets where new years are added as new columns, for longevitiy
+
+Let's filter the series to a selection of 20 representative indices for simlicity
+
+
+
+Ok - do one last verification sweep across the codebase and our discussion t make sure we've captured everything in the initial brief. Flag anything to me, and any improvements that you yourself would make in my position, with rationale
+
+
+1. Give me powerBI code for a measure that calculates diesel-petrol difference on any given day 6. clean up db. 7. add generated data files to git ignore
+
+
+Actually - let's add a new category to the fuel prices data which is diff. And does diesel - petrol. Do this in the dataframe before ingestion to SQL
+
+
+Remove /test scripts from gitignore
+
+
+Ok - and finally. let's make a nice readme with a description of what everything does, the decisions made, the file structure, tests, ideal operating scenario, etc etc
+
+Now, from that readme and your understanding, give me a prompt to give to copilot in powerpoint to create some nice slides that visually take us through the project. Emphasis on visual, I want diagrams, flows, etc.
