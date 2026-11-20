@@ -1,1 +1,10 @@
-tests/
+# Downloaded source data and generated database/CSV outputs
+/input/
+/output/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# macOS metadata
+.DS_Store

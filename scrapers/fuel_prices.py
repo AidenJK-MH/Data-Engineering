@@ -166,6 +166,20 @@ def clean_data(raw_dataframe: pd.DataFrame) -> pd.DataFrame:
         - dataframe["duty_tax_p_per_litre"]
     ).round(6)
 
+    diesel = dataframe.loc[dataframe["fuel"] == "Diesel"].set_index("date")
+    petrol = dataframe.loc[dataframe["fuel"] == "Petrol"].set_index("date")
+    if not diesel.index.equals(petrol.index):
+        raise ValueError("Cannot calculate fuel price differences: dates do not match.")
+
+    difference_dataframe = (
+        diesel[numeric_columns + ["pre_tax_cost_p_per_litre"]]
+        .sub(petrol[numeric_columns + ["pre_tax_cost_p_per_litre"]])
+        .round(6)
+        .assign(fuel="Diff")
+        .reset_index()
+    )
+    dataframe = pd.concat([dataframe, difference_dataframe], ignore_index=True)
+
     return dataframe[
         [
             "date",

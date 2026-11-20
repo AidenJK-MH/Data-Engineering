@@ -5,7 +5,7 @@ from typing import Dict, Optional
 
 import pandas as pd
 
-from scrapers import fuel_prices, uk_hpi
+from scrapers import fuel_prices, ons_cpi, uk_hpi
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -32,6 +32,13 @@ DATASETS = {
         "get_data": uk_hpi.get_data,
         "clean_data": uk_hpi.clean_data,
         "csv_name": "uk_hpi.csv",
+        "csv_columns": None,
+        "order_by": (),
+    },
+    "ons_cpi": {
+        "get_data": ons_cpi.get_data,
+        "clean_data": ons_cpi.clean_data,
+        "csv_name": "ons_cpi.csv",
         "csv_columns": None,
         "order_by": (),
     },
